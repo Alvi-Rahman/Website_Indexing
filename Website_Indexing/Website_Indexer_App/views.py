@@ -18,6 +18,57 @@ def home_page(request):
 def process_data(request):
     if request.method == 'POST':
         val = request.POST['data']
-        return JsonResponse(val,safe=False)
+        driver = webdriver.Chrome('chromedriver.exe')
+        driver.get(val)
+        social = [
+            'facebook.com',
+            'instagram.com',
+            'twitter.com',
+            'linkedin.com',
+            'pinterest.com',
+            'youtube.com',
+            'flipboard.com',
+            'google.com',
+            'reddit.com',
+            '@'
+        ]
+        links = []
+        elems = driver.find_elements_by_xpath("//a[@href]")
+        for elem in elems:
+            temp_link = elem.get_attribute("href")
+            if [i for i in social if
+                i in temp_link or re.match(".*?(\(?\d{3}\D{0,3}\d{3}\D{0,3}\d{4}).*?", str(temp_link))]:
+                pass
+            else:
+                links.append(temp_link)
+
+        links = list(set(links))
+
+        meta_desc_list = driver.find_elements_by_xpath("//meta[@name='description']")
+        meta_desc = None
+        for desc in meta_desc_list:
+            meta_desc = desc.get_attribute("content")
+
+        title = driver.title
+
+        keywords_list = driver.find_elements_by_xpath("//meta[@name='keywords']")
+        keywords = None
+        for keyword in keywords_list:
+            keywords = keyword.get_attribute("content")
+
+        img = driver.find_elements_by_tag_name('img')
+
+        c = 0
+        for i in img:
+            src = i.get_attribute('src')
+            os.chdir(settings.MEDIA_ROOT)
+            os.mkdir(str(src).split('/')[-1].split('.')[0])
+            os.chdir(str(src).split('/')[-1].split('.')[0])
+            # download the image
+            urllib.request.urlretrieve(src, str(src).split('/')[-1])
+            break
+
+        driver.quit()
+        return JsonResponse([settings.STATIC_ROOT, settings.MEDIA_ROOT],safe=False)
     else:
         return JsonResponse([0],safe=False)
