@@ -1,0 +1,40 @@
+{% extends 'Website_Indexer_App/base.html' %}
+{% block title %} Home | Website Indexer {% endblock %}
+
+{% load static %}
+{% block content %}
+
+
+<div class="container">
+    <div class="jumbotron m-5 d-flex">
+
+        <input id="search_content" class="form-control" type="text">
+
+        <input id="search" type="submit" class="btn btn-primary ml-2" value="Search">
+
+    </div>
+</div>
+
+
+<script>
+
+    $( "#search" ).click(function() {
+        var search_val = $("#search_content").val();
+        // console.log(search_val);
+
+        $.post("{% url 'process_data' %}",
+        {
+            data: search_val
+        },
+        function(data){
+            console.log(data);
+        });
+
+    });
+
+
+
+
+</script>
+
+{% endblock %}
