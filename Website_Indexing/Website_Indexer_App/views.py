@@ -43,31 +43,33 @@ def process_data(request):
                 links.append(temp_link)
 
         links = list(set(links))
+        for l in links:
+            meta_desc_list = driver.find_elements_by_xpath("//meta[@name='description']")
+            meta_desc = None
+            for desc in meta_desc_list:
+                meta_desc = desc.get_attribute("content")
 
-        meta_desc_list = driver.find_elements_by_xpath("//meta[@name='description']")
-        meta_desc = None
-        for desc in meta_desc_list:
-            meta_desc = desc.get_attribute("content")
+            title = driver.title
 
-        title = driver.title
+            keywords_list = driver.find_elements_by_xpath("//meta[@name='keywords']")
+            keywords = None
+            for keyword in keywords_list:
+                keywords = keyword.get_attribute("content")
 
-        keywords_list = driver.find_elements_by_xpath("//meta[@name='keywords']")
-        keywords = None
-        for keyword in keywords_list:
-            keywords = keyword.get_attribute("content")
+            img = driver.find_elements_by_tag_name('img')
 
-        img = driver.find_elements_by_tag_name('img')
 
-        c = 0
-        for i in img:
-            src = i.get_attribute('src')
+            folder_name = str(settings.MEDIA_ROOT)
             os.chdir(settings.MEDIA_ROOT)
-            os.mkdir(str(src).split('/')[-1].split('.')[0])
-            os.chdir(str(src).split('/')[-1].split('.')[0])
-            # download the image
-            urllib.request.urlretrieve(src, str(src).split('/')[-1])
-            break
+            # os.mkdir(folder_name)
+            # os.chdir(folder_name)
+            for i in img:
+                src = i.get_attribute('src')
 
+                # download the image
+                urllib.request.urlretrieve(src, src.split('/')[-1])
+                break
+            break
         driver.quit()
         return JsonResponse([settings.STATIC_ROOT, settings.MEDIA_ROOT],safe=False)
     else:
