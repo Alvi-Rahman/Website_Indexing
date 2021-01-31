@@ -2,13 +2,14 @@
 {% block title %} Home | Website Indexer {% endblock %}
 
 {% load static %}
+{% load custom_tags %}
 {% block content %}
 
 
 <div class="container">
     <div class="jumbotron m-5 d-flex">
 
-        <input id="search_content" class="form-control" type="text">
+        <input id="search_content" class="form-control" type="text" placeholder="Search for URL">
 
         <input id="search" type="submit" class="btn btn-primary ml-2" value="Search">
 
@@ -16,11 +17,48 @@
 </div>
 
 
+<div class="container">
+
+    {% for i in all_pages %}
+
+        <a href="{{i.search_word}}">
+            <h1> {{ i.title }} </h1>
+        </a>
+        <p class="text-success" style="font-size: 12px;"> <a class="text-success" href="{{i.search_word}}"> {{i.search_word}} </a></p>
+        
+        <div class="row m-3">
+    
+        {% for j in i.child %}
+            
+            
+            {% if i.search_word != j.url %}
+                <div class="col-md-6">
+
+                <a href="{{j.url}}">
+                    <h3> {{ j.title }} | {{j.url|give_page_name}} </h3> 
+                </a>
+                <p class="text-success" style="font-size: 12px;"> <a class="text-success" href="{{j.url}}"> {{j.url}} </a></p>
+                </div>
+            {% endif %}
+                
+
+                
+        
+        
+        {% endfor %}
+        </div>
+    
+    {% endfor %}
+
+</div>
+
+
+
 <script>
 
     $( "#search" ).click(function() {
         var search_val = $("#search_content").val();
-        // console.log(search_val);
+        console.log(search_val);
 
         $.post("{% url 'process_data' %}",
         {
@@ -28,6 +66,13 @@
         },
         function(data){
             console.log(data);
+            
+            if (data == 1) {
+                alert('Search Complete!')
+            }else{
+                alert('Oops! Something went wrong')
+            }
+
         });
 
     });

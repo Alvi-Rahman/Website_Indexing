@@ -13,7 +13,12 @@ from django.http import JsonResponse, HttpResponse , HttpResponseRedirect
 
 def home_page(request):
 
-    return render(request, "Website_Indexer_App/index.html")
+    all_pages = models.ParentPage.objects.all()
+
+    for i in all_pages:
+        i.child = models.ChildPage.objects.filter(page_name__id = i.id)
+
+    return render(request, "Website_Indexer_App/index.html", context={'all_pages': all_pages})
 
 def process_data(request):
     if request.method == 'POST':
@@ -43,7 +48,10 @@ def process_data(request):
                 links.append(temp_link)
 
         links = list(set(links))
+
+        parent = models.ParentPage.objects.create(search_word=val, title = driver.title)
         for l in links:
+            driver.get(l)
             meta_desc_list = driver.find_elements_by_xpath("//meta[@name='description']")
             meta_desc = None
             for desc in meta_desc_list:
@@ -58,19 +66,19 @@ def process_data(request):
 
             img = driver.find_elements_by_tag_name('img')
 
-
-            folder_name = str(settings.MEDIA_ROOT)
+            all_media = []
             os.chdir(settings.MEDIA_ROOT)
-            # os.mkdir(folder_name)
-            # os.chdir(folder_name)
             for i in img:
                 src = i.get_attribute('src')
-
+                media_name = src.split('/')[-1]
+                all_media.append(media_name)
                 # download the image
-                urllib.request.urlretrieve(src, src.split('/')[-1])
-                break
-            break
+                urllib.request.urlretrieve(src, media_name)
+            models.ChildPage.objects.create(
+                page_name=parent, url=l, title=title, keywords=keywords, media=all_media)
+
+            # driver.close()
         driver.quit()
-        return JsonResponse([settings.STATIC_ROOT, settings.MEDIA_ROOT],safe=False)
+        return JsonResponse(1,safe=False)
     else:
-        return JsonResponse([0],safe=False)
+        return JsonResponse(0,safe=False)
